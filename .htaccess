@@ -1,0 +1,10 @@
+# Immer über HTTPS
+RewriteEngine On
+RewriteCond %{HTTPS} !=on
+RewriteCond %{HTTP:X-Forwarded-Proto} !https
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Verhindert direkten Abruf von Konfigurations-, Hilfs- und Installationsdateien.
+<FilesMatch "^(ai-config\.php|ai-config\.php\.example|db-config\.php|db-config\.php\.example|lib\.php|README-DE\.txt|hinweis\.txt|INSTALLATION.*\.txt)$">
+  Require all denied
+</FilesMatch>

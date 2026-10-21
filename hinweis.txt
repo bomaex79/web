@@ -1,0 +1,35 @@
+BM Browser – Seiten direkt in der App öffnen
+============================================
+Neu: proxy.php. Es lädt die Webseite auf dem Server und entfernt die Sperre gegen Einbetten,
+deshalb öffnen sich Seiten jetzt direkt im BM Browser (wie in einem normalen Browser-Tab).
+
+Hochladen: ALLE Dateien in denselben Ordner (index.html, proxy.php, suche.php, sw.js, manifest, Icons).
+Voraussetzung: PHP mit cURL (wie bei suche.php).
+
+Grenzen eines Proxys:
+- Logins/Cookies funktionieren nicht. Google, YouTube, Facebook, Instagram, TikTok, X werden
+  deshalb weiter im normalen Browser geöffnet.
+- Sehr JavaScript-lastige Seiten können fehlerhaft aussehen. Einfache Seiten, News, Wikipedia,
+  Blogs und Shops funktionieren in der Regel gut.
+- Einstellungen -> "Seiten in der App anzeigen (Proxy)" schaltet das ab.
+- proxy.php lässt sich nur aus dem BM Browser heraus nutzen (Schutz vor Missbrauch).
+  Falls das Probleme macht: oben in proxy.php $NUR_VON_EIGENER_SEITE = false setzen.
+
+Installieren: Chrome/Android: Button "Als App installieren" auf der Startseite (oder Menü -> App installieren).
+iPhone/iPad: Teilen -> Zum Home-Bildschirm. Läuft nur über https.
+
+
+NEU: BM KI DIREKT IM BROWSER
+----------------------------
+In der unteren Navigation gibt es jetzt „BM KI“. API-Schlüssel dort eintragen und speichern.
+Der Schlüssel wird nur lokal im Browser-Speicher dieses Geräts gespeichert und direkt von
+der App an GroqCloud gesendet. Nicht auf gemeinsam genutzten Geräten speichern.
+Das verwendete Beispielmodell ist openai/gpt-oss-20b; falls es im Tarif nicht verfügbar ist,
+muss im Code AI_MODEL auf ein aktuell verfügbares Modell gesetzt werden.
+Die App enthält keinen zentralen Server für KI-Anfragen. Jeder Nutzer benötigt daher einen
+eigenen Schlüssel. Für öffentliche Nutzung ohne eigene Schlüssel wäre eine sichere Backend-
+Anbindung erforderlich. Nicht auf der Website veröffentlichen oder teilen.
+
+AKTUALISIERUNG: BM KI mit geschütztem Server-Endpunkt
+----------------------------------------------------
+Diese ZIP-Version enthält ai.php und ai-config.php.example. Die BM KI nutzt nicht mehr den Schlüssel aus dem Browser-Speicher. Vor dem Live-Betrieb ai-config.php.example kopieren/umbenennen und dort den Groq-Schlüssel auf dem Server eintragen. Vollständige Schritte: INSTALLATION-BM-KI.txt.

@@ -1,0 +1,25 @@
+<?php
+// VOR DER VERÖFFENTLICHUNG: Datei als db-config.php speichern und die Platzhalter ersetzen.
+// Diese Datei niemals weitergeben oder in öffentliche Repositories laden.
+return [
+    // Datenbank (bei All-Inkl ist der Host normalerweise "localhost")
+    'db_host' => 'localhost',
+    'db_name' => 'd048a6b8',
+    'db_user' => 'd048a6b8',
+    'db_pass' => 'HIER_DATENBANK_PASSWORT_EINTRAGEN',
+
+    // Admin-Konto: Wer sich mit dieser E-Mail registriert, wird Admin – aber nur mit dem Admin-Code.
+    // Wähle einen langen geheimen Code (mind. 12 Zeichen). Er wird nur bei der Registrierung gebraucht.
+    'admin_email' => 'bomaex@gmx.de',
+    'admin_code'  => 'HIER_EIGENEN_GEHEIMEN_ADMIN_CODE_EINTRAGEN',
+
+    // Absender der "Passwort vergessen"-Mail (Postfach muss bei deinem Hoster existieren)
+    'mail_from' => 'info@bomaex.de',
+    // Feste Adresse des Browsers (wird im Link der Passwort-Mail verwendet)
+    'base_url'  => 'https://web.bomaex.de',
+
+    // Optional: Google-Suchergebnisse über die Google-Programmable-Search-API (siehe Anleitung).
+    // Leer lassen = Ersatzsuche über DuckDuckGo.
+    'google_api_key' => '',
+    'google_cx'      => '',
+];

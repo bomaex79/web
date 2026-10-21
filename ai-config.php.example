@@ -1,0 +1,11 @@
+<?php
+// VOR DER VERÖFFENTLICHUNG: Datei als ai-config.php speichern und eigenen Groq-Schlüssel eintragen.
+// Diese Datei niemals in öffentlichen Code-Repositories veröffentlichen.
+return [
+    'groq_api_key' => 'HIER_DEINEN_GROQ_API_SCHLUESSEL_EINTRAGEN',
+    'model' => 'openai/gpt-oss-20b',
+    // Max. Anfragen pro IP pro 24 Stunden. Bei Bedarf vorsichtig anpassen.
+    'daily_limit_per_ip' => 100,
+    // Max. Anfragen pro IP in einem rollierenden 60-Sekunden-Fenster.
+    'minute_limit_per_ip' => 4,
+];

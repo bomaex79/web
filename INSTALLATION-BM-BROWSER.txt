@@ -1,0 +1,29 @@
+BM BROWSER – INSTALLATION (https://web.bomaex.de)
+================================================
+
+1. SICHERUNG des bisherigen Ordners, dann ALLE Dateien dieser ZIP in den Ordner hochladen,
+   der unter https://web.bomaex.de erreichbar ist (index.html muss dort liegen). Bestehende Dateien ersetzen.
+
+2. db-config.php anlegen: db-config.php.example kopieren, Kopie in db-config.php umbenennen und eintragen:
+   - db_pass: Passwort der Datenbank d048a6b8 (Host bei All-Inkl normalerweise "localhost")
+   - admin_code: ein eigener langer geheimer Code (nur für die Admin-Registrierung)
+   Die Tabellen werden beim ersten Aufruf automatisch angelegt (Präfix bm_).
+
+3. Admin-Konto: Im Browser Einstellungen -> Konto & Anmeldung -> E-Mail bomaex@gmx.de + Passwort eingeben ->
+   Registrieren. Es erscheint ein Feld "Admin-Code": den admin_code aus db-config.php eintragen, nochmal Registrieren.
+   Danach erscheint unter Konto der Bereich "Administration".
+
+4. BM KI: ai-config.php.example als ai-config.php kopieren und den Groq-Schlüssel eintragen.
+   KI sehen und nutzen nur Admin und Konten, bei denen der Admin unter Administration "KI" anhakt.
+   Limit: 100 Anfragen pro Konto und Tag (4 pro Minute), einstellbar in ai-config.php.
+
+5. Passwort-vergessen-Mail: kommt von info@bomaex.de. Dieses Postfach muss bei All-Inkl als Absender erlaubt
+   sein (PHP mail()). Test: Konto -> Passwort vergessen.
+
+6. Google-Suche (optional): In db-config.php google_api_key und google_cx eintragen (Google Programmable
+   Search Engine, "gesamtes Web durchsuchen" + Custom-Search-API-Schlüssel). Ohne beides liefert die Suche
+   ersatzweise DuckDuckGo-Ergebnisse. Google direkt zu laden/zu "scrapen" ist nicht zulässig.
+
+7. Voraussetzungen: PHP mit cURL und PDO-MySQL, HTTPS. Danach die Seite einmal neu laden (Cache v10).
+
+Impressum und Datenschutz: gelb markierte Stellen mit deinen Angaben ersetzen.

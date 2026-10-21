@@ -1,0 +1,596 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1424">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="canonical" href="https://web.bomaex.de/">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>BM Browser</title>
+<style>
+:root{
+  --bg:#0b1424;--bg2:#0f1b30;--card:#1c2a42;--card2:#22304a;--tx:#f1f6ff;--mut:#8ea3c4;--ac:#5cc8ff;--bd:#25375a;
+  --u:clamp(13px,3.6vw,18px);
+}
+:root[data-theme=light]{--bg:#eef4ff;--bg2:#ffffff;--card:#ffffff;--card2:#e6eefc;--tx:#0b1424;--mut:#5a6f90;--ac:#0b7bbf;--bd:#cfdcf0}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--tx);font:var(--u)/1.35 system-ui,Roboto,sans-serif;display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+svg.i{width:1.5em;height:1.5em;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+/* Werkzeugleiste (nur auf Webseiten) */
+#bar{display:none;gap:.5em;align-items:center;padding:calc(.5em + env(safe-area-inset-top)) .6em .5em;background:var(--bg2);border-bottom:1px solid var(--bd)}
+body.page #bar{display:flex}
+#bar .ib{width:2.6em;height:2.6em;border-radius:.8em;display:grid;place-items:center;flex:none}
+#bar .ib:active{background:var(--card)}
+#url{flex:1;min-width:0;height:2.7em;border-radius:1.4em;border:1px solid var(--bd);background:var(--bg);color:var(--tx);padding:0 1em;font-size:.95em;outline:none}
+#url:focus{border-color:var(--ac)}
+
+main{flex:1;position:relative;min-height:0}
+#home,#frames,.panel{position:absolute;inset:0}
+
+/* Startseite */
+#home{overflow:auto;padding:calc(1.2em + env(safe-area-inset-top)) 1.1em 1.2em;display:flex;flex-direction:column;gap:1.1em;max-width:640px;margin:0 auto;width:100%}
+.head{display:flex;align-items:center;gap:.8em}
+.logo{width:3.8em;height:3.8em;flex:none;object-fit:contain;display:block}
+.tl{margin:0;flex:1;min-width:0;color:var(--mut);font-size:.95em;line-height:1.3}.tl b{color:var(--tx)}
+.slogo{width:2.2em;height:2.2em;flex:none;object-fit:contain;display:block}
+.head h1{margin:0;font-size:1.75em;line-height:1.1;letter-spacing:-.01em}
+.head p{margin:.15em 0 0;color:var(--mut);font-size:.95em}
+.search{display:flex;align-items:center;gap:.7em;background:var(--card2);border-radius:2em;padding:0 1.3em;height:3.5em;color:var(--mut)}
+.search input{flex:1;min-width:0;background:none;border:0;outline:none;color:var(--tx);font-size:1.1em;height:100%}
+.search input::placeholder{color:var(--mut)}
+.quick{display:grid;grid-template-columns:repeat(3,1fr);gap:.8em}
+.q{border-radius:1.3em;padding:1.1em .4em;display:flex;flex-direction:column;align-items:center;gap:.55em;font-weight:700;font-size:.95em;min-width:0}
+.q svg.i{width:2em;height:2em}
+.q span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.q.m{background:#1d3856;color:#fff}.q.m svg{color:#5cc8ff}
+.q.f{background:#1d3d34;color:#fff}.q.f svg{color:#5fe0a0}
+.q.c{background:#3a2d52;color:#fff}.q.c svg{color:#d4aaff}
+:root[data-theme=light] .q.m{background:#d8ecff;color:#0b2a46}
+:root[data-theme=light] .q.f{background:#d6f3e4;color:#0d3326}
+:root[data-theme=light] .q.c{background:#ebdfff;color:#2e1a4d}
+.favs{background:var(--card);border-radius:1.3em;padding:1.1em}
+.favs h2{margin:0 0 .6em;font-size:1.15em;display:flex;align-items:center;gap:.5em}
+.favs h2 svg{color:#ffc857}
+.favs .hintx{margin:0;color:var(--mut)}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(5.2em,1fr));gap:.7em;margin-bottom:.4em}
+.fav{background:var(--card2);border-radius:1em;padding:.8em .3em;display:flex;flex-direction:column;align-items:center;gap:.4em;font-size:.85em;min-width:0}
+.fav .ic{width:2.4em;height:2.4em;border-radius:.8em;display:grid;place-items:center;font-weight:800;background:linear-gradient(135deg,#0ea5e9,#22d3ee);color:#04223a}
+.fav span.t{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+#frames iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff;display:none}
+#frames iframe.on{display:block}
+#blocked{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:1em;padding:1.5em;text-align:center;background:var(--bg)}
+#blocked p{margin:0;color:var(--mut);max-width:22em}
+#blocked a.btn{text-decoration:none}
+#hint{position:absolute;left:0;right:0;bottom:0;background:var(--bg2);border-top:1px solid var(--bd);padding:.5em .8em;font-size:.82em;color:var(--mut);display:none;justify-content:space-between;gap:.8em;align-items:center}
+#hint button{color:var(--ac);font-weight:700;white-space:nowrap}
+
+/* Untere Leiste */
+nav{display:flex;justify-content:space-around;background:var(--bg2);border-top:1px solid var(--bd);padding:.4em .2em calc(.4em + env(safe-area-inset-bottom))}
+nav button{flex:1;padding:.4em 0;font-size:.72em;color:var(--mut);display:flex;flex-direction:column;align-items:center;gap:.25em;min-width:0}
+nav button svg.i{width:2.2em;height:2.2em}
+nav button.on{color:var(--ac)}
+#tabcount{position:absolute;font-size:.62em;font-weight:800;line-height:1;margin-top:-.05em}
+nav .tb{position:relative;display:grid;place-items:center}
+
+/* Panels */
+.panel{background:var(--bg);overflow:auto;padding:calc(1em + env(safe-area-inset-top)) 1em 1em;display:none;max-width:640px;margin:0 auto;width:100%}
+.panel.on{display:block}
+.panel h2{margin:.2em 0 .8em;font-size:1.5em}
+.row{display:flex;align-items:center;gap:.7em;background:var(--card);border-radius:1em;padding:.7em .9em;margin-bottom:.55em}
+.row .m{flex:1;min-width:0}
+.row .m div{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .m small{color:var(--mut)}
+.row .x{color:var(--mut);padding:.3em .6em;font-size:1.1em}
+.btn{background:var(--ac);color:#04223a;font-weight:700;border-radius:.9em;padding:.8em 1.1em}
+.btn.sec{background:var(--card);color:var(--tx)}
+.btn.red{background:#ef4444;color:#fff}
+.set{display:flex;flex-direction:column;gap:.8em}
+select{background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:.7em;padding:.6em;font-size:1em}
+label.sw{display:flex;justify-content:space-between;align-items:center;gap:.7em}
+.legal{margin:auto 0 0;text-align:center;font-size:.85em;color:var(--mut)}.legal a{color:var(--mut)}
+.empty{color:var(--mut);text-align:center;margin-top:2em}
+
+@media (min-width:700px){body{font-size:18px}}
+@media (max-height:520px){#home{gap:.7em;padding-top:.7em}.q{padding:.6em .3em}}
+
+/* BM KI integriert */
+#p-ai{padding:1em;max-width:760px;display:none;flex-direction:column;gap:.7em}
+#p-ai.on{display:flex}
+.ai-head{display:flex;align-items:center;gap:.75em;background:linear-gradient(120deg,#202b4c,#29214b);border:1px solid var(--bd);border-radius:1.2em;padding:1em}
+.ai-head img{width:3.4em;height:3.4em;object-fit:contain;background:#0b1424;border-radius:50%;padding:.2em}
+.ai-head h2{margin:0;font-size:1.25em}.ai-head p{margin:.25em 0 0;color:var(--mut);font-size:.85em}
+.ai-tools{display:flex;gap:.5em;flex-wrap:wrap}.ai-tools button{background:var(--card);border:1px solid var(--bd);border-radius:1em;padding:.6em .8em;font-size:.85em}
+#ai-log{flex:1;min-height:100px;overflow:auto;display:flex;flex-direction:column;gap:.7em;padding:.3em 0}
+.ai-msg{max-width:95%;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.5;padding:.8em 1em;border-radius:1em;background:var(--card);font-size:.95em}
+.ai-msg.user{align-self:flex-end;background:#253b60}.ai-msg.bot{align-self:flex-start}
+.ai-compose{display:flex;gap:.5em;align-items:flex-end;background:var(--card);border:1px solid var(--bd);border-radius:1em;padding:.5em}
+.ai-compose textarea{flex:1;min-width:0;resize:vertical;min-height:44px;max-height:130px;background:transparent;color:var(--tx);border:0;outline:0;padding:.5em}
+.ai-compose button{background:var(--ac);color:#04223a;font-weight:800;border-radius:.8em;padding:.7em .9em}
+.ai-status{color:var(--mut);font-size:.78em;line-height:1.45}
+.ai-key{display:flex;gap:.5em}.ai-key input{flex:1;min-width:0;background:var(--bg2);color:var(--tx);border:1px solid var(--bd);border-radius:.7em;padding:.7em}
+
+
+/* Konto & Admin */
+.acc-btn{margin-left:auto;background:var(--card2);color:var(--tx);border-radius:1.4em;padding:.55em .9em;font-size:.85em;font-weight:700;max-width:45%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fi{width:100%;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:.8em;padding:.8em;font:inherit;outline:none}
+.fi:focus{border-color:var(--ac)}
+textarea.fi{min-height:7em;resize:vertical}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:.6em}
+.lnk{color:var(--ac);font-weight:700;text-align:left;padding:.2em 0}
+.msg{margin:0;min-height:1.2em;font-size:.9em;color:var(--mut)}.msg.bad{color:#ff7b7b}.msg.good{color:#5fe0a0}
+.adm{border-top:1px solid var(--bd);margin-top:1em;padding-top:1em}
+.adm h3{margin:.2em 0 .6em}
+.urow{display:flex;align-items:center;gap:.6em;background:var(--card);border-radius:1em;padding:.6em .8em;margin-bottom:.5em}
+.urow .m{flex:1;min-width:0}.urow .m div{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.urow small{color:var(--mut)}
+.urow label{display:flex;align-items:center;gap:.3em;font-size:.85em}
+</style>
+</head>
+<body>
+<header id="bar">
+  <button class="ib" id="back" aria-label="Start"><svg class="i" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+  <form id="uf" style="flex:1;min-width:0;display:flex" action="javascript:void(0)"><input id="url" enterkeyhint="go" type="text" inputmode="url" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="Suchen oder Adresse eingeben"></form>
+  <button class="ib" id="nt" aria-label="Neuer Tab" title="Neuer Tab"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+  <button class="ib" id="star" aria-label="Lesezeichen"><svg class="i" viewBox="0 0 24 24"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg></button>
+  <button class="ib" id="ext" aria-label="Im neuen Tab öffnen" title="Im neuen Tab öffnen"><svg class="i" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></button>
+  <button class="ib" id="reload" aria-label="Neu laden"><svg class="i" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.5-5.8M20 4v5h-5"/></svg></button>
+</header>
+
+<main>
+  <section id="home">
+    <div class="head">
+      <p class="tl"><b>BM Browser</b> · Dein Internet. Deine Welt.</p>
+      <button class="acc-btn" id="accbtn" style="display:none">Anmelden</button>
+    </div>
+    <form class="search" id="hf" action="javascript:void(0)">
+      <img class="slogo" src="logo.png" alt="BM">
+      <input id="hurl" enterkeyhint="go" type="text" inputmode="url" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="Suchen oder Adresse eingeben">
+    </form>
+    <div class="quick" id="quick"></div>
+    <div class="favs" id="extbox" style="display:none"><h2>Erweiterungen</h2><div class="fgrid" id="exts"></div></div>
+    <button class="btn" id="instbtn" style="display:none">Als App installieren</button>
+    <div class="favs">
+      <h2><svg class="i" viewBox="0 0 24 24"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg>Deine Favoriten</h2>
+      <div class="fgrid" id="favs"></div>
+      <p class="hintx" id="favempty">Eigene Webseiten hinzufügen und jederzeit wieder öffnen.</p>
+    </div>
+    <p class="legal"><a href="impressum.html">Impressum</a> · <a href="datenschutz.html">Datenschutz</a></p>
+  </section>
+  <section id="frames"></section>
+  <div id="blocked"><img class="logo" src="logo.png" alt=""><h2 id="bt" style="margin:0"></h2><p>Diese Seite (z. B. Login oder Konto) funktioniert nur im normalen Browser.</p><a class="btn" id="bl" href="#" target="_blank" rel="noopener">Im Browser öffnen</a></div>
+
+  <section class="panel" id="p-res"><h2 id="rt"></h2><div id="rlist"></div><p><a class="btn sec" id="rext" href="#" target="_blank" rel="noopener" style="display:inline-block;text-decoration:none">Im Browser suchen</a></p></section>
+  <section class="panel" id="p-tabs"><h2>Tabs</h2><div id="tablist"></div><button class="btn" id="newtab">+ Neuer Tab</button></section>
+  <section class="panel" id="p-bm"><h2>Lesezeichen</h2><div id="bmlist"></div></section>
+  <section class="panel" id="p-hist"><h2>Verlauf</h2><div id="histlist"></div><button class="btn sec" id="clearhist">Verlauf löschen</button></section>
+  <section class="panel" id="p-set"><h2>Einstellungen</h2>
+    <div class="set">
+      <label class="sw">Design
+        <select id="theme"><option value="dark">Dunkel</option><option value="light">Hell</option></select></label>
+      <label class="sw">Suchmaschine<b>Google</b></label>
+      <button class="btn" id="toacc">Konto &amp; Anmeldung</button>
+      <label class="sw">Seiten in der App anzeigen (Proxy)
+        <input type="checkbox" id="useproxy"></label>
+      <label class="sw">Fremde Seiten immer extern öffnen
+        <input type="checkbox" id="extonly"></label>
+      <small id="ioshint" style="display:none;color:var(--mut)">Installieren auf iPhone/iPad: Teilen-Symbol → „Zum Home-Bildschirm“.</small>
+      <button class="btn sec" id="clearall">Lesezeichen &amp; Verlauf löschen</button>
+      <button class="btn red" id="reset">Alle Daten zurücksetzen</button>
+      <small style="color:var(--mut)"><a href="impressum.html" style="color:var(--ac)">Impressum</a> · <a href="datenschutz.html" style="color:var(--ac)">Datenschutz</a><br>Version 8 · Ohne Anmeldung bleiben alle Daten lokal auf deinem Gerät. Mit Anmeldung werden Favoriten, Verlauf und Einstellungen in deinem Konto gespeichert.</small>
+    </div>
+  </section>
+  <section class="panel" id="p-acc"><h2>Konto</h2>
+    <div id="acc-off" class="empty" style="display:none">Die Anmeldung ist auf diesem Server noch nicht eingerichtet. Der Browser funktioniert trotzdem ohne Konto.</div>
+    <div id="acc-out" class="set" style="display:none">
+      <p style="margin:0;color:var(--mut)">Kostenlos anmelden, um Verlauf, Favoriten und Einstellungen auf allen Geräten zu nutzen. Der Browser funktioniert auch ohne Anmeldung.</p>
+      <input class="fi" id="a-mail" type="email" autocomplete="username" autocapitalize="off" placeholder="E-Mail-Adresse">
+      <input class="fi" id="a-pw" type="password" autocomplete="current-password" placeholder="Passwort (mind. 8 Zeichen)">
+      <input class="fi" id="a-code" type="password" autocomplete="off" placeholder="Admin-Code" style="display:none">
+      <div class="two"><button class="btn" id="a-login">Anmelden</button><button class="btn sec" id="a-reg">Registrieren</button></div>
+      <button class="lnk" id="a-forgot">Passwort vergessen?</button>
+    </div>
+    <div id="acc-reset" class="set" style="display:none">
+      <p style="margin:0;color:var(--mut)">Neues Passwort festlegen:</p>
+      <input class="fi" id="r-pw" type="password" autocomplete="new-password" placeholder="Neues Passwort (mind. 8 Zeichen)">
+      <button class="btn" id="r-go">Passwort speichern</button>
+    </div>
+    <div id="acc-in" class="set" style="display:none">
+      <p style="margin:0">Angemeldet als <b id="a-who"></b></p>
+      <p style="margin:0;color:var(--mut)" id="a-info"></p>
+      <button class="btn sec" id="a-chpw">Passwort ändern</button>
+      <button class="btn sec" id="a-logout">Abmelden</button>
+      <button class="btn red" id="a-del">Konto löschen</button>
+    </div>
+    <p class="msg" id="a-msg"></p>
+    <div class="adm" id="adm" style="display:none">
+      <h3>Administration</h3>
+      <div id="adm-users"></div>
+      <h3>Schnellzugriffe (Startseite)</h3>
+      <textarea class="fi" id="adm-links" placeholder="Eine Zeile pro Link: Titel | https://adresse.de"></textarea>
+      <h3>Erweiterungen (Startseite)</h3>
+      <textarea class="fi" id="adm-ext" placeholder="Eine Zeile pro Eintrag: Titel | https://adresse.de"></textarea>
+      <button class="btn" id="adm-save" style="margin-top:.6em">Speichern</button>
+      <p class="msg" id="adm-msg"></p>
+    </div>
+  </section>
+  <section class="panel" id="p-ai">
+    <div class="ai-head"><img src="logo.png" alt="BM Logo"><div><h2>BM KI</h2><p>Dein KI-Assistent · direkt im BM Browser</p></div></div>
+    <div class="ai-status">Die BM KI wird über den geschützten BM-Server bereitgestellt. Dein API-Schlüssel wird nicht in dieser App gespeichert oder an Besucher ausgeliefert. Deine Nachricht wird zur Beantwortung an GroqCloud übertragen.</div>
+    <div class="ai-tools"><button data-ai-prompt="Erkläre mir ein schwieriges Thema einfach und mit einem Beispiel.">Wissen erklären</button><button data-ai-prompt="Schreibe einen freundlichen Social-Media-Beitrag zu einer neuen Idee.">Text schreiben</button><button data-ai-prompt="Hilf mir, eine Aufgabe in klare Schritte aufzuteilen.">Plan erstellen</button><button id="ai-clear">Chat leeren</button></div>
+    <div id="ai-log" aria-live="polite"><div class="ai-msg bot">Hallo! Ich bin BM KI. Stelle mir eine Frage – sofern der Betreiber den Server-Schlüssel eingerichtet hat.</div></div>
+    <form class="ai-compose" id="ai-form"><textarea id="ai-input" rows="2" placeholder="Frage an BM KI …"></textarea><button type="submit" id="ai-send">Senden ➤</button></form>
+    <div class="ai-status">BM KI kann Fehler machen. Keine Passwörter oder vertraulichen Daten eingeben. Kostenloser Tarif und Limits unter console.groq.com.</div>
+  </section>
+</main>
+
+<nav>
+  <button data-go="home" class="on"><svg class="i" viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></svg>Start</button>
+  <button data-go="tabs"><span class="tb"><svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="3"/></svg><b id="tabcount">1</b></span>Tabs</button>
+  <button data-go="bm"><svg class="i" viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4z"/></svg>Lesezeichen</button>
+  <button data-go="hist"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Verlauf</button>
+  <button data-go="ai" id="navai" style="display:none"><svg class="i" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 16l1 2.5 2.5 1-2.5 1L19 23l-1-2.5-2.5-1 2.5-1z"/></svg>BM KI</button>
+  <button data-go="set"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Einstellungen</button>
+</nav>
+
+<script>
+(function(){
+'use strict';
+var $=function(s){return document.querySelector(s)};
+var $$=function(s){return Array.prototype.slice.call(document.querySelectorAll(s))};
+var KEY='bmbrowser.v1';
+/* Schnellzugriffe – Adressen bei Bedarf anpassen */
+var QUICK=[
+  {t:'Messenger',u:'https://www.bo-maex.de',c:'m',p:'<path d="M21 12a8 8 0 0 1-11.7 7L4 20l1.1-4.6A8 8 0 1 1 21 12z"/>'},
+  {t:'BM Farm',u:'https://www.bmfarm.de',c:'f',p:'<path d="M12 21v-9M12 12c0-4 2.5-6 7-6 0 4-2.5 6-7 6zM12 15c0-3-2-5-6-5 0 3 2 5 6 5z"/>'},
+  {t:'Community',u:'https://www.bo-maex.de',c:'c',p:'<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>'}
+];
+var CFG={links:[],ext:[]},ME=null,OFF=false,pushT=null,applying=false;
+var ICONP='<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>';
+function quickList(){return CFG.links.length?CFG.links.map(function(l,i){return{t:l.t,u:l.u,c:['m','f','c'][i%3],p:ICONP}}):QUICK}
+var NOFRAME=/(^|\.)(youtube\.com|facebook\.com|instagram\.com|tiktok\.com|x\.com|twitter\.com)$/i;
+var HOSTS_OWN=/(^|\.)bo-maex\.de$|(^|\.)bomaexshop\.de$|(^|\.)bmfarm\.de$/i;
+var S;
+function load(){try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){S=null}
+  if(!S||typeof S!=='object')S={};
+  S.theme=S.theme||'dark';S.engine='https://www.google.com/search?q=';S.extonly=!!S.extonly;S.ownext=false;S.useproxy=(S.useproxy===undefined)?true:!!S.useproxy;
+  S.bm=S.bm||[];S.hist=S.hist||[];}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}if(typeof ME!=='undefined'&&ME&&!applying)pushSoon()}
+load();
+
+var tabs=[],cur=-1,tid=0,curView='home';
+function norm(v){
+  v=(v||'').trim();if(!v)return '';
+  if(/^https?:\/\//i.test(v))return v;
+  if(/^[^\s]+\.[a-z]{2,}(\/.*)?$/i.test(v))return 'https://'+v;
+  return S.engine+encodeURIComponent(v);
+}
+function host(u){try{return new URL(u).hostname.replace(/^www\./,'')}catch(e){return u}}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function ownSite(u){var h=host(u);return HOSTS_OWN.test(h)||h===location.hostname}
+
+function show(view){
+  if(view==='ai'&&!(ME&&ME.ai))return;
+  curView=view;document.body.classList.toggle('page',view==='page'||view==='res');
+  $('#home').style.display=view==='home'?'flex':'none';
+  $('#frames').style.display=view==='page'?'block':'none';
+  $$('.panel').forEach(function(p){p.classList.remove('on')});
+  if(['tabs','bm','hist','set','res','ai','acc'].indexOf(view)>-1)$('#p-'+view).classList.add('on');
+  var key=view==='page'?'home':view;
+  $$('nav button').forEach(function(b){b.classList.toggle('on',b.dataset.go===key)});
+  if(view==='tabs')renderTabs();if(view==='bm')renderBm();if(view==='hist')renderHist();
+}
+function newTab(u){
+  tabs.push({id:++tid,url:'',title:'Neuer Tab',fr:null});cur=tabs.length-1;
+  $('#url').value='';$('#hurl').value='';
+  if(u)open(u);else show('home');
+  updCount();
+}
+function queryOf(v){
+  v=(v||'').trim();if(!v)return '';
+  if(/^https?:\/\//i.test(v))return '';
+  if(/^[^\s]+\.[a-z]{2,}(\/.*)?$/i.test(v))return '';
+  return v;
+}
+function search(q){
+  if(cur<0)newTab();
+  var t=tabs[cur];t.q=q;t.url='';t.blocked=false;
+  $('#url').value=q;$('#hurl').value=q;
+  $('#rt').textContent='Ergebnisse für „'+q+'“';
+  $('#rext').href=S.engine+encodeURIComponent(q);
+  $('#rlist').innerHTML='<p class="empty">Suche läuft …</p>';
+  show('res');
+  fetch('suche.php?q='+encodeURIComponent(q)).then(function(r){return r.json()}).then(function(d){
+    if(tabs[cur]!==t||t.q!==q)return;
+    var l=$('#rlist');l.innerHTML='';
+    if(!d.items||!d.items.length){l.innerHTML='<p class="empty">'+esc(d.error||'Keine Ergebnisse')+'</p>';return}
+    d.items.forEach(function(it){
+      var r=document.createElement('div');r.className='row';
+      r.innerHTML='<div class="m"><div><b>'+esc(it.t)+'</b></div><small>'+esc(host(it.u))+'</small><div style="white-space:normal;color:var(--mut);font-size:.9em;margin-top:.2em">'+esc(it.s||'')+'</div></div>';
+      r.onclick=function(){open(it.u,true)};l.appendChild(r);
+    });
+  }).catch(function(){
+    $('#rlist').innerHTML='<p class="empty">Suche nicht erreichbar. Ist suche.php auf dem Server hochgeladen?</p>';
+  });
+}
+function proxyUrl(u){return 'proxy.php?u='+encodeURIComponent(u)}
+function open(raw,fr,keep){
+  var q=queryOf(raw);if(q){search(q);return}
+  var u=norm(raw);if(!u)return;
+  if(cur<0)newTab();
+  var t=tabs[cur];t.fromRes=!!fr;if(!keep)t.stack=[];
+  if(S.extonly&&!ownSite(u)){window.open(u,'_blank','noopener');return}
+  if(NOFRAME.test(host(u))||(S.ownext&&ownSite(u))){
+    t.url=u;t.title=host(u);t.blocked=true;$('#url').value=u;
+    S.hist.unshift({u:u,t:t.title,d:Date.now()});S.hist=S.hist.slice(0,300);save();
+    show('page');sync();updStar();
+    return;
+  }
+  if(!t.fr){t.fr=document.createElement('iframe');
+    t.fr.setAttribute('allow','fullscreen; clipboard-write; autoplay');
+    t.fr.setAttribute('referrerpolicy','strict-origin-when-cross-origin');
+    $('#frames').appendChild(t.fr);}
+  if(S.useproxy)t.fr.setAttribute('sandbox','allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-downloads');
+  else t.fr.removeAttribute('sandbox');
+  t.url=u;t.title=host(u);t.blocked=false;t.pending=true;t.fr.src=S.useproxy?proxyUrl(u):u;
+  sync();
+  $('#url').value=u;
+  S.hist.unshift({u:u,t:t.title,d:Date.now()});S.hist=S.hist.slice(0,300);save();
+  show('page');updStar();
+}
+function sync(){
+  var t=tabs[cur];
+  $$('#frames iframe').forEach(function(f){f.classList.remove('on')});
+  $('#blocked').style.display='none';
+  if(t&&t.url){
+    if(t.blocked){$('#blocked').style.display='flex';$('#bl').href=t.url;$('#bt').textContent=host(t.url)}
+    else if(t.fr)t.fr.classList.add('on');
+  }
+}
+function switchTab(i){
+  cur=i;var t=tabs[i];
+  if(t.url){$('#url').value=t.url;show('page');sync()}else{$('#url').value='';show('home')}
+  updStar();
+}
+function closeTab(i){
+  var t=tabs[i];if(t.fr)t.fr.remove();tabs.splice(i,1);
+  if(!tabs.length){newTab();return}
+  if(cur>=tabs.length)cur=tabs.length-1;else if(i<cur)cur--;
+  updCount();renderTabs();
+}
+function updCount(){$('#tabcount').textContent=tabs.length}
+function isBm(u){return S.bm.some(function(b){return b.u===u})}
+function updStar(){var u=cur>-1&&tabs[cur].url;$('#star path').setAttribute('fill',u&&isBm(u)?'currentColor':'none')}
+
+function renderHome(){
+  var q=$('#quick');q.innerHTML='';
+  quickList().forEach(function(s){
+    var ext=S.ownext&&ownSite(s.u);
+    var b=document.createElement(ext?'a':'button');b.className='q '+s.c;
+    if(ext){b.href=s.u;b.target='_blank';b.rel='noopener';b.style.textDecoration='none'}
+    b.innerHTML='<svg class="i" viewBox="0 0 24 24">'+s.p+'</svg><span>'+esc(s.t)+'</span>';
+    if(!ext)b.onclick=function(){open(s.u)};q.appendChild(b);
+  });
+  var f=$('#favs');f.innerHTML='';
+  S.bm.forEach(function(b,i){
+    var d=document.createElement('button');d.className='fav';
+    d.innerHTML='<div class="ic">'+esc((b.t||'?').charAt(0).toUpperCase())+'</div><span class="t">'+esc(b.t)+'</span>';
+    d.onclick=function(){open(b.u)};
+    var rm=function(){if(confirm('Favorit entfernen?')){S.bm.splice(i,1);save();renderHome();updStar()}};
+    d.oncontextmenu=function(e){e.preventDefault();rm()};
+    var tm;d.addEventListener('touchstart',function(){tm=setTimeout(rm,650)},{passive:true});
+    ['touchend','touchmove'].forEach(function(n){d.addEventListener(n,function(){clearTimeout(tm)})});
+    f.appendChild(d);
+  });
+  $('#favempty').style.display=S.bm.length?'none':'block';
+  var eb=$('#exts');eb.innerHTML='';
+  CFG.ext.forEach(function(x){var d=document.createElement('button');d.className='fav';
+    d.innerHTML='<div class="ic" style="background:linear-gradient(135deg,#a78bfa,#5cc8ff)">'+esc((x.t||'?').charAt(0).toUpperCase())+'</div><span class="t">'+esc(x.t)+'</span>';
+    d.onclick=function(){open(x.u)};eb.appendChild(d)});
+  $('#extbox').style.display=CFG.ext.length?'block':'none';
+}
+function row(title,sub,onopen,onx){
+  var r=document.createElement('div');r.className='row';
+  r.innerHTML='<div class="m"><div>'+esc(title)+'</div><small>'+esc(sub)+'</small></div>'+(onx?'<button class="x" aria-label="Entfernen">✕</button>':'');
+  r.querySelector('.m').onclick=onopen;if(onx)r.querySelector('.x').onclick=onx;return r;
+}
+function renderTabs(){var l=$('#tablist');l.innerHTML='';
+  tabs.forEach(function(t,i){l.appendChild(row((i===cur?'● ':'')+t.title,t.url||'Startseite',function(){switchTab(i)},function(){closeTab(i)}))});}
+function renderBm(){var l=$('#bmlist');l.innerHTML='';
+  if(!S.bm.length){l.innerHTML='<p class="empty">Noch keine Lesezeichen.</p>';return}
+  S.bm.forEach(function(b,i){l.appendChild(row(b.t,b.u,function(){open(b.u)},function(){S.bm.splice(i,1);save();renderBm();renderHome();updStar()}))});}
+function renderHist(){var l=$('#histlist');l.innerHTML='';
+  if(!S.hist.length){l.innerHTML='<p class="empty">Verlauf ist leer.</p>';return}
+  S.hist.slice(0,100).forEach(function(h,i){l.appendChild(row(h.t,h.u,function(){open(h.u)},function(){S.hist.splice(i,1);save();renderHist()}))});}
+
+
+/* BM KI – geschützter Server-Endpunkt; kein API-Schlüssel im Browser */
+var aiHistory=[];
+function aiLog(role,text){var d=document.createElement('div');d.className='ai-msg '+(role==='user'?'user':'bot');d.textContent=text;$('#ai-log').appendChild(d);$('#ai-log').scrollTop=$('#ai-log').scrollHeight}
+async function aiSend(text){
+  text=(text||$('#ai-input').value||'').trim();if(!text)return;
+  $('#ai-input').value='';$('#ai-send').disabled=true;aiLog('user',text);aiHistory.push({role:'user',content:text});
+  var wait=document.createElement('div');wait.className='ai-msg bot';wait.textContent='BM KI denkt nach …';wait.id='ai-wait';$('#ai-log').appendChild(wait);$('#ai-log').scrollTop=$('#ai-log').scrollHeight;
+  try{
+    var r=await fetch('ai.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:aiHistory})});
+    var data=await r.json();if(!r.ok)throw new Error(typeof data.error==='string'?data.error:((data.error&&data.error.message)||('HTTP '+r.status)));
+    var answer=data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content;if(!answer)throw new Error('Keine Antwort erhalten.');
+    $('#ai-wait')?.remove();aiHistory.push({role:'assistant',content:answer});aiLog('assistant',answer);
+  }catch(e){$('#ai-wait')?.remove();var msg=e.message||'Verbindungsfehler';if(msg.indexOf('429')>=0)msg='Kostenloses Nutzungslimit erreicht. Bitte später erneut versuchen.';aiLog('assistant','Die Anfrage hat nicht funktioniert: '+msg)}
+  finally{$('#ai-send').disabled=false;$('#ai-input').focus()}
+}
+$('#ai-form').addEventListener('submit',function(e){e.preventDefault();aiSend()});
+$('#ai-input').addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();aiSend()}});
+$('#ai-clear').onclick=function(){aiHistory=[];$('#ai-log').innerHTML='';aiLog('assistant','Chat geleert. Was möchtest du als Nächstes wissen?')};
+$$('[data-ai-prompt]').forEach(function(b){b.onclick=function(){show('ai');aiSend(b.getAttribute('data-ai-prompt'))}});
+
+
+function enter(el){el.form.addEventListener('submit',function(e){e.preventDefault();var v=el.value;el.blur();open(v)})}
+enter($('#url'));enter($('#hurl'));
+$('#url').addEventListener('focus',function(){var s=this;setTimeout(function(){s.select()},0)});
+$('#back').onclick=function(){
+  var t=tabs[cur];
+  if(curView==='res'){if(t)t.q='';$('#url').value='';$('#hurl').value='';show('home');return}
+  if(t&&t.url&&t.stack&&t.stack.length){open(t.stack.pop(),t.fromRes,true);return}
+  if(t&&t.url&&t.fromRes&&t.q){
+    t.url='';t.blocked=false;t.fromRes=false;
+    if(t.fr){t.fr.classList.remove('on');t.fr.src='about:blank'}
+    $('#blocked').style.display='none';$('#url').value=t.q;show('res');updStar();return;
+  }
+  if(t&&t.url){t.url='';t.blocked=false;if(t.fr){t.fr.classList.remove('on');t.fr.src='about:blank'}$('#blocked').style.display='none';$('#url').value='';$('#hurl').value=''}
+  show('home');updStar();
+};
+$('#reload').onclick=function(){var t=tabs[cur];if(t&&t.url&&t.fr)t.fr.src=S.useproxy?proxyUrl(t.url):t.url};
+$('#star').onclick=function(){
+  var t=tabs[cur];if(!t||!t.url)return;
+  var i=S.bm.findIndex(function(b){return b.u===t.url});
+  if(i>-1)S.bm.splice(i,1);else S.bm.push({t:t.title,u:t.url});
+  save();updStar();renderHome();
+};
+$('#ext').onclick=function(){var t=tabs[cur];if(!t||!t.url)return;var a=document.createElement('a');a.href=t.url;a.target='_blank';a.rel='noopener';document.body.appendChild(a);a.click();a.remove()};
+$('#newtab').onclick=function(){newTab()};
+$('#nt').onclick=function(){newTab()};
+$$('nav button').forEach(function(b){b.onclick=function(){
+  var g=b.dataset.go;
+  if(g==='home'){var t=tabs[cur];show(t&&t.url?'page':'home')}else show(g);
+}});
+$('#clearhist').onclick=function(){if(confirm('Verlauf löschen?')){S.hist=[];save();renderHist()}};
+$('#clearall').onclick=function(){if(confirm('Lesezeichen und Verlauf löschen?')){S.bm=[];S.hist=[];save();renderHome();updStar();alert('Gelöscht.')}};
+$('#reset').onclick=function(){if(confirm('Wirklich ALLE Daten zurücksetzen?')){try{localStorage.removeItem(KEY)}catch(e){}location.reload()}};
+$('#theme').onchange=function(){S.theme=this.value;save();applyTheme()};
+$('#extonly').onchange=function(){S.extonly=this.checked;save()};
+$('#useproxy').onchange=function(){S.useproxy=this.checked;save()};
+function applyTheme(){document.documentElement.setAttribute('data-theme',S.theme);
+  var m=document.querySelector('meta[name=theme-color]');if(m)m.content=S.theme==='light'?'#eef4ff':'#0b1424';}
+window.addEventListener('message',function(e){
+  var d=e.data;
+  if(d&&typeof d.bmOpen==='string'&&/^https?:\/\//i.test(d.bmOpen)){
+    for(var k=0;k<tabs.length;k++){if(tabs[k].fr&&tabs[k].fr.contentWindow===e.source){newTab(d.bmOpen);return}}
+    return;
+  }if(!d||typeof d.bmUrl!=='string'||!/^https?:\/\//i.test(d.bmUrl))return;
+  var t=null;for(var i=0;i<tabs.length;i++){if(tabs[i].fr&&tabs[i].fr.contentWindow===e.source){t=tabs[i];break}}
+  if(!t||t.blocked)return;
+  var nav=!t.pending&&!!t.url&&t.url!==d.bmUrl;
+  if(nav){t.stack=t.stack||[];t.stack.push(t.url)}
+  t.pending=false;t.url=d.bmUrl;
+  t.title=String(d.bmTitle||'').trim().slice(0,80)||host(d.bmUrl);
+  if(nav){S.hist.unshift({u:t.url,t:t.title,d:Date.now()});S.hist=S.hist.slice(0,300);save()}
+  if(tabs[cur]===t){$('#url').value=t.url;updStar()}
+});
+var dip=null;
+window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();dip=e;$('#instbtn').style.display='block'});
+window.addEventListener('appinstalled',function(){dip=null;$('#instbtn').style.display='none'});
+$('#instbtn').onclick=function(){if(dip){dip.prompt();dip=null;this.style.display='none'}};
+
+/* ---- Konto, Synchronisation, Admin ---- */
+function api(a,body,get){
+  var o={method:get?'GET':'POST',credentials:'same-origin',headers:{'X-BM':'1'}};
+  if(!get){o.headers['Content-Type']='application/json';o.body=JSON.stringify(Object.assign({a:a},body||{}))}
+  return fetch('api.php'+(get?'?a='+a:''),o).then(function(r){
+    return r.json().then(function(d){d._s=r.status;return d},function(){return{error:'Server-Antwort ungültig (ist api.php hochgeladen?)',_s:r.status}});
+  },function(){return{error:'Keine Verbindung zum Server.',_s:0}});
+}
+function say(id,t,k){var m=$(id);m.textContent=t||'';m.className='msg'+(k?' '+k:'')}
+function syncData(){return{bm:S.bm,hist:S.hist.slice(0,300),theme:S.theme,useproxy:S.useproxy,extonly:S.extonly}}
+function pushNow(){if(ME)api('sync_put',{data:syncData()})}
+function pushSoon(){clearTimeout(pushT);pushT=setTimeout(pushNow,1500)}
+function pullSync(){
+  api('sync_get').then(function(d){
+    if(!d||d.error)return;
+    if(!d.data){pushNow();return}
+    applying=true;
+    S.bm=d.data.bm||[];S.hist=d.data.hist||[];
+    if(d.data.theme)S.theme=d.data.theme;
+    S.useproxy=!!d.data.useproxy;S.extonly=!!d.data.extonly;
+    save();applying=false;
+    applyTheme();$('#theme').value=S.theme;$('#useproxy').checked=S.useproxy;$('#extonly').checked=S.extonly;
+    renderHome();updStar();
+  });
+}
+function updAcc(resetMode){
+  $('#acc-off').style.display=OFF?'block':'none';
+  $('#acc-out').style.display=(!OFF&&!ME&&!resetMode)?'flex':'none';
+  $('#acc-reset').style.display=resetMode?'flex':'none';
+  $('#acc-in').style.display=ME?'flex':'none';
+  $('#adm').style.display=(ME&&ME.role==='admin')?'block':'none';
+  $('#accbtn').style.display=OFF?'none':'block';
+  $('#accbtn').textContent=ME?ME.email.split('@')[0]:'Anmelden';
+  $('#navai').style.display=(ME&&ME.ai)?'':'none';
+  if(ME){
+    $('#a-who').textContent=ME.email;
+    $('#a-info').textContent=ME.role==='admin'?'Administrator · BM KI freigeschaltet':(ME.ai?'BM KI ist für dein Konto freigeschaltet.':'BM KI ist für dein Konto nicht freigeschaltet.');
+  }
+}
+function applyMe(d){
+  OFF=!!(d&&d.off);ME=(d&&d.user)||null;
+  CFG=(d&&d.cfg)||{links:[],ext:[]};CFG.links=CFG.links||[];CFG.ext=CFG.ext||[];
+  updAcc(false);renderHome();
+  if(ME){pullSync();if(ME.role==='admin')loadAdmin()}
+}
+function refreshMe(){return api('me',null,true).then(applyMe)}
+function toLines(a){return a.map(function(x){return x.t+' | '+x.u}).join('\n')}
+function fromLines(t){return t.split('\n').map(function(l){var i=l.indexOf('|');return i<0?null:{t:l.slice(0,i).trim(),u:l.slice(i+1).trim()}}).filter(function(x){return x&&x.t&&x.u})}
+function loadAdmin(){
+  $('#adm-links').value=toLines(CFG.links);$('#adm-ext').value=toLines(CFG.ext);
+  api('admin_users').then(function(d){
+    var l=$('#adm-users');l.innerHTML='';
+    if(!d||!d.users){l.innerHTML='<p class="empty">'+esc((d&&d.error)||'Fehler')+'</p>';return}
+    d.users.forEach(function(u){
+      var r=document.createElement('div');r.className='urow';
+      r.innerHTML='<div class="m"><div>'+esc(u.email)+(u.role==='admin'?' (Admin)':'')+'</div><small>Letzte Anmeldung: '+(u.last_login?new Date(u.last_login*1000).toLocaleDateString('de-DE'):'–')+'</small></div>'+
+        '<label><input type="checkbox" '+((u.ai_enabled||u.role==='admin')?'checked ':'')+(u.role==='admin'?'disabled':'')+'> KI</label>'+
+        (u.role==='admin'?'':'<button class="x" aria-label="Löschen">✕</button>');
+      var cb=r.querySelector('input');
+      if(u.role!=='admin'){
+        cb.onchange=function(){api('admin_user_set',{id:u.id,ai:cb.checked})};
+        r.querySelector('.x').onclick=function(){if(confirm(u.email+' wirklich löschen?'))api('admin_user_set',{id:u.id,'delete':true}).then(loadAdmin)};
+      }
+      l.appendChild(r);
+    });
+  });
+}
+function creds(){return{email:$('#a-mail').value.trim(),password:$('#a-pw').value}}
+$('#accbtn').onclick=function(){show('acc')};
+$('#toacc').onclick=function(){show('acc')};
+$('#a-login').onclick=function(){say('#a-msg','…');api('login',creds()).then(function(d){
+  if(d.error){say('#a-msg',d.error,'bad');return}
+  $('#a-pw').value='';say('#a-msg','');refreshMe()})};
+$('#a-reg').onclick=function(){say('#a-msg','…');var b=creds();b.admin_code=$('#a-code').value;api('register',b).then(function(d){
+  if(d.code==='admin_code')$('#a-code').style.display='block';
+  if(d.error){say('#a-msg',d.error,'bad');return}
+  $('#a-pw').value='';$('#a-code').value='';say('#a-msg','');refreshMe()})};
+$('#a-forgot').onclick=function(){var m=$('#a-mail').value.trim();if(!m){say('#a-msg','Bitte oben deine E-Mail-Adresse eingeben.','bad');return}
+  say('#a-msg','…');api('forgot',{email:m}).then(function(d){say('#a-msg',d.error||d.message,d.error?'bad':'good')})};
+$('#r-go').onclick=function(){var tok=new URLSearchParams(location.search).get('reset')||window.__rt||'';
+  api('reset',{token:tok,password:$('#r-pw').value}).then(function(d){
+    if(d.error){say('#a-msg',d.error,'bad');return}
+    $('#r-pw').value='';window.__rt='';say('#a-msg','Passwort gespeichert. Bitte jetzt anmelden.','good');updAcc(false)})};
+$('#a-logout').onclick=function(){api('logout').then(function(){ME=null;updAcc(false);say('#a-msg','Abgemeldet.');refreshMe()})};
+$('#a-chpw').onclick=function(){var o=prompt('Aktuelles Passwort:');if(o===null)return;var n=prompt('Neues Passwort (mind. 8 Zeichen):');if(n===null)return;
+  api('change_password',{old:o,'new':n}).then(function(d){say('#a-msg',d.error||'Passwort geändert.',d.error?'bad':'good')})};
+$('#a-del').onclick=function(){if(!confirm('Konto und alle gespeicherten Kontodaten endgültig löschen?'))return;var p=prompt('Zur Bestätigung dein Passwort eingeben:');if(p===null)return;
+  api('delete_account',{password:p}).then(function(d){if(d.error){say('#a-msg',d.error,'bad');return}ME=null;refreshMe();say('#a-msg','Konto gelöscht.','good')})};
+$('#adm-save').onclick=function(){say('#adm-msg','…');
+  api('admin_cfg_set',{links:fromLines($('#adm-links').value),ext:fromLines($('#adm-ext').value)}).then(function(d){
+    if(d.error){say('#adm-msg',d.error,'bad');return}
+    CFG=d.cfg;renderHome();say('#adm-msg','Gespeichert.','good')})};
+
+function init(){
+  var ios=/iphone|ipad|ipod/i.test(navigator.userAgent),standalone=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+  if(ios&&!standalone)$('#ioshint').style.display='block';
+  applyTheme();$('#theme').value=S.theme;$('#extonly').checked=S.extonly;$('#useproxy').checked=S.useproxy;
+  renderHome();newTab();
+  var p=new URLSearchParams(location.search).get('u');if(p)open(p);
+  var rt=new URLSearchParams(location.search).get('reset');
+  refreshMe().then(function(){if(rt&&/^[a-f0-9]{64}$/.test(rt)){window.__rt=rt;try{history.replaceState(null,'','./')}catch(e){}updAcc(true);show('acc')}});
+}
+init();
+if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})}
+})();
+</script>
+</body>
+</html>
