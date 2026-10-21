@@ -88,6 +88,7 @@ class MainActivity : Activity() {
 
     private var sid = ""
     private var meEmail: String? = null
+    private var meName: String = ""
     private var meRole = ""
     private var meAi = false
     private var syncTheme = "dark"
@@ -702,6 +703,10 @@ class MainActivity : Activity() {
     private fun esc(s: String): String =
         s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;").replace("'", "&#39;")
 
+    private fun refreshHome() {
+        for (t in tabs) if (t.home) showHome(t)
+    }
+
     private fun showHome(t: Tab) {
         t.home = true
         t.url = ""
@@ -740,7 +745,8 @@ class MainActivity : Activity() {
             links.add(Pair("BM Farm", "https://www.bmfarm.de"))
             links.add(Pair("Community", "https://www.bo-maex.de"))
         }
-        val accountLabel = if (meEmail != null) "Konto" else "Anmelden"
+        val shownName = if (meName.isNotBlank()) meName else (meEmail ?: "").substringBefore("@")
+        val accountLabel = if (meEmail != null) esc(if (shownName.length > 18) shownName.take(17) + "\u2026" else shownName) else "Anmelden"
         val sb = StringBuilder()
         sb.append("<!doctype html><html><head><meta charset='utf-8'>")
         sb.append("<meta name='viewport' content='width=device-width,initial-scale=1'><style>")
@@ -998,6 +1004,7 @@ class MainActivity : Activity() {
             val u = d.optJSONObject("user")
             if (u != null) {
                 meEmail = u.optString("email")
+                meName = u.optString("name")
                 meRole = u.optString("role")
                 meAi = u.optBoolean("ai")
                 pullSync()
@@ -1005,8 +1012,10 @@ class MainActivity : Activity() {
                 meEmail = null
                 meRole = ""
                 meAi = false
+                meName = ""
                 if (sid.isNotEmpty()) setSid("")
             }
+            refreshHome()
         }
     }
 
@@ -1038,6 +1047,7 @@ class MainActivity : Activity() {
                 prefs.edit().putString("fav", fav.toString()).putString("hist", hist.toString()).apply()
             }
             if (!d.has("error")) pushNow()
+            refreshHome()
         }
     }
 
@@ -1136,9 +1146,11 @@ class MainActivity : Activity() {
                 apiCall("logout", null, false) {
                     setSid("")
                     meEmail = null
+                    meName = ""
                     meRole = ""
                     meAi = false
                     toast("Abgemeldet")
+                    refreshHome()
                 }
             }
             .setNeutralButton("Web-Konto öffnen") { _, _ -> newTab("$BASE/") }
