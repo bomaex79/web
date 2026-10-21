@@ -363,6 +363,12 @@ class MainActivity : Activity() {
             val u = request.url
             val scheme = u.scheme ?: ""
             if (scheme == "bmaccount") { accountDialog(); return true }
+            if (scheme == "bmopen") {
+                val h = u.host ?: ""
+                if (h == "impressum") newTab("$BASE/impressum.html")
+                else if (h == "datenschutz") newTab("$BASE/datenschutz.html")
+                return true
+            }
             if (scheme == "bmsearch") {
                 val q = u.getQueryParameter("q") ?: ""
                 if (q.isNotBlank()) view.loadUrl(resolve(q))
@@ -769,7 +775,7 @@ class MainActivity : Activity() {
         sb.append(".fl{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}")
         sb.append(".fl a{display:block;text-align:center;text-decoration:none;color:#f1f6ff;background:#26364f;border-radius:16px;padding:14px 8px;font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}")
         sb.append(".ft{margin-top:auto;padding-top:34px;text-align:center;font-size:15px;color:#8ea3c4}")
-        sb.append(".ft a{color:#8ea3c4}")
+        sb.append(".ft a{color:#8ea3c4;display:inline-block;padding:14px 12px}")
         sb.append("</style></head><body>")
         sb.append("<div class='top'><p class='tl'><b>BM Browser</b> \u00B7 Dein Internet. Deine Welt.</p>")
         sb.append("<a class='acc' href='bmaccount://open'>").append(accountLabel).append("</a></div>")
@@ -797,7 +803,7 @@ class MainActivity : Activity() {
             sb.append("<p>Eigene Webseiten hinzuf\u00FCgen und jederzeit wieder \u00F6ffnen.</p>")
         }
         sb.append("</div>")
-        sb.append("<div class='ft'><a href='").append(BASE).append("/impressum.html'>Impressum</a> \u00B7 <a href='").append(BASE).append("/datenschutz.html'>Datenschutz</a></div>")
+        sb.append("<div class='ft'><a href='bmopen://impressum'>Impressum</a> \u00B7 <a href='bmopen://datenschutz'>Datenschutz</a></div>")
         sb.append("</body></html>")
         return sb.toString()
     }
