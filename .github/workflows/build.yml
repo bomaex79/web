@@ -1,0 +1,37 @@
+name: APK bauen
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+      - name: Signierschlüssel (optional, aus GitHub-Secrets)
+        env:
+          KS_B64: ${{ secrets.KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
+          KS_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KS_KEYPASS: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          if [ -n "$KS_B64" ]; then
+            echo "$KS_B64" | base64 -d > bm.jks
+            printf 'storeFile=bm.jks\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n' "$KS_PASS" "$KS_ALIAS" "$KS_KEYPASS" > keystore.properties
+          fi
+      - name: APK bauen
+        run: gradle assembleRelease --no-daemon
+      - name: APK umbenennen
+        run: cp app/build/outputs/apk/release/app-release.apk bm-browser.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bm-browser-apk
+          path: bm-browser.apk

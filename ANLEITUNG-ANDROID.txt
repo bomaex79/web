@@ -1,0 +1,47 @@
+BM BROWSER – ANDROID-APP (echter Browser, Download von deiner Website)
+=====================================================================
+
+Was die App kann
+- Echte Browser-Engine (Chromium-WebView des Handys): Logins, YouTube, Videos im Vollbild, Cookies, Datei-Upload,
+  Downloads, Kamera/Mikrofon/Standort mit Nachfrage, mehrere Tabs, Favoriten, Verlauf, Desktop-Version.
+- Links mit "neuer Tab" öffnen als neuer Tab in der App.
+- Kann als Standardbrowser gewählt werden (Links aus anderen Apps öffnen sich im BM Browser).
+- Google als feste Suche. Konto: gleiche Anmeldung wie https://web.bomaex.de, Favoriten und Verlauf werden synchronisiert.
+- Menü "BM KI & Administration (Web)" öffnet web.bomaex.de (bereits angemeldet). Nur für Android (APK), nicht für iPhone.
+
+APK BAUEN – Weg A: Android Studio (am PC)
+1. Android Studio installieren (kostenlos), "Open" -> diesen Ordner wählen, Sync abwarten.
+2. Menü Build -> Build Bundle(s) / APK(s) -> Build APK(s).
+3. Die Datei liegt in app/build/outputs/apk/ (für die Website: Variante "release" bauen:
+   Build -> Generate Signed App Bundle / APK -> APK).
+
+APK BAUEN – Weg B: GitHub (ohne eigene Installation)
+1. Neues privates GitHub-Repository anlegen, den kompletten Inhalt dieses Ordners hochladen
+   (der Ordner .github muss mit hoch).
+2. Reiter "Actions" -> "APK bauen" -> "Run workflow". Nach ca. 5 Minuten unter "Artifacts" bm-browser-apk laden.
+
+EIGENER SIGNIERSCHLÜSSEL (wichtig für Updates)
+Jede neue Version muss mit demselben Schlüssel signiert sein, sonst lässt sie sich nicht über die alte installieren.
+1. Schlüssel einmalig erzeugen (am PC mit Java):
+   keytool -genkeypair -v -keystore bm.jks -alias bm -keyalg RSA -keysize 2048 -validity 10000
+2. Datei bm.jks gut sichern (Backup!) und niemals weitergeben.
+3. Android Studio: Datei keystore.properties im Projektordner anlegen:
+   storeFile=bm.jks
+   storePassword=DEIN_PASSWORT
+   keyAlias=bm
+   keyPassword=DEIN_PASSWORT
+   Bei GitHub: Settings -> Secrets -> KEYSTORE_BASE64 (Inhalt von: base64 -w0 bm.jks), KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD.
+Ohne Schlüssel wird mit dem Debug-Schlüssel signiert: zum Testen ok, für Updates nicht geeignet.
+
+AUF DEINER WEBSITE
+1. bm-browser.apk und download.html in einen Ordner auf deinem Webspace laden (z. B. https://web.bomaex.de/app/).
+2. Falls die .htaccess dort APK-Dateien falsch ausliefert: AddType application/vnd.android.package-archive .apk
+3. Bei jeder neuen Version versionCode in app/build.gradle.kts um 1 erhöhen.
+
+INSTALLIEREN AUF DEM HANDY
+Download-Seite öffnen -> APK laden -> öffnen -> "Aus dieser Quelle installieren" erlauben -> Installieren.
+Google Play Protect kann bei unbekannten Apps warnen; "Trotzdem installieren" wählen.
+Danach: Menü (⋮) -> "Als Standardbrowser festlegen".
+
+Bekannte Grenzen: Downloads von blob:/data:-Adressen noch nicht unterstützt; keine Erweiterungen im Chrome-Sinn;
+kein Inkognito-Modus; Tabs werden beim Beenden nicht wiederhergestellt.
