@@ -5,6 +5,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
+// Optional: eigener Signierschlüssel. Datei keystore.properties im Projektordner anlegen (siehe Anleitung).
 val ksFile = rootProject.file("keystore.properties")
 val ksProps = Properties()
 if (ksFile.exists()) ksFile.inputStream().use { ksProps.load(it) }

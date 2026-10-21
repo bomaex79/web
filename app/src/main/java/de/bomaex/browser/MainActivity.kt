@@ -355,12 +355,13 @@ class MainActivity : Activity() {
     }
 
     private fun isHomeUrl(u: String): Boolean =
-        u.isEmpty() || u.startsWith("bmstart:") || u.startsWith("about:") || u.startsWith("data:")
+        u.isEmpty() || u.contains("bmstart.invalid") || u.startsWith("bmstart:") || u.startsWith("about:") || u.startsWith("data:")
 
     private val client = object : WebViewClient() {
         override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
             val u = request.url
             val scheme = u.scheme ?: ""
+            if (scheme == "bmaccount") { accountDialog(); return true }
             if (scheme == "bmsearch") {
                 val q = u.getQueryParameter("q") ?: ""
                 if (q.isNotBlank()) view.loadUrl(resolve(q))
@@ -389,7 +390,7 @@ class MainActivity : Activity() {
             val t = tabFor(view) ?: return
             val title = view.title ?: ""
             if (t.home) t.title = "Neuer Tab" else if (title.isNotBlank()) t.title = title else t.title = url
-            if (url.startsWith("http://") || url.startsWith("https://")) addHistory(t.title, url)
+            if (!t.home && (url.startsWith("http://") || url.startsWith("https://"))) addHistory(t.title, url)
             if (isCur(view)) { progress.visibility = View.GONE }
         }
 
@@ -709,6 +710,20 @@ class MainActivity : Activity() {
         if (cur >= 0 && cur < tabs.size && tabs[cur] === t) showUrl("")
     }
 
+    private fun tileStyle(title: String): Array<String> {
+        val t = title.lowercase()
+        return when {
+            t.contains("messenger") || t.contains("chat") -> arrayOf("#1d3856", "#5bbcff",
+                "<path d='M21 12a8 8 0 0 1-11.6 7.1L4 20l1.1-4.3A8 8 0 1 1 21 12z'/>")
+            t.contains("farm") -> arrayOf("#1f3d33", "#4be08f",
+                "<path d='M12 21v-9'/><path d='M12 12C12 8 9 6 5 6c0 4 2 6 7 6z'/><path d='M12 14c0-3 2-5 6-5 0 3-2 5-6 5z'/>")
+            t.contains("community") -> arrayOf("#3a2e55", "#d6a8ff",
+                "<path d='M9 18V6l10-2v12'/><circle cx='7' cy='18' r='2.5'/><circle cx='17' cy='16' r='2.5'/>")
+            else -> arrayOf("#1c2a42", "#8ea3c4",
+                "<circle cx='12' cy='12' r='9'/><path d='M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18'/>")
+        }
+    }
+
     private fun homeHtml(): String {
         var logo = ""
         try {
@@ -725,35 +740,58 @@ class MainActivity : Activity() {
             links.add(Pair("BM Farm", "https://www.bmfarm.de"))
             links.add(Pair("Community", "https://www.bo-maex.de"))
         }
+        val accountLabel = if (meEmail != null) "Konto" else "Anmelden"
         val sb = StringBuilder()
         sb.append("<!doctype html><html><head><meta charset='utf-8'>")
         sb.append("<meta name='viewport' content='width=device-width,initial-scale=1'><style>")
-        sb.append("body{margin:0;background:#0b1424;color:#f1f6ff;font:16px system-ui,Roboto,sans-serif;padding:22px 16px}")
-        sb.append(".tl{color:#8ea3c4;margin:0 0 18px;font-size:15px}.tl b{color:#f1f6ff}")
+        sb.append("*{box-sizing:border-box}")
+        sb.append("body{margin:0;background:#0b1424;color:#f1f6ff;font:16px system-ui,Roboto,sans-serif;padding:22px 16px 28px;min-height:100vh;display:flex;flex-direction:column}")
+        sb.append(".top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 18px}")
+        sb.append(".tl{color:#8ea3c4;margin:0;font-size:15px}.tl b{color:#f1f6ff}")
+        sb.append(".acc{display:inline-block;text-decoration:none;color:#f1f6ff;background:#22304a;border-radius:20px;padding:10px 18px;font-weight:700;font-size:15px;white-space:nowrap}")
         sb.append("form{display:flex;align-items:center;gap:12px;background:#22304a;border-radius:30px;padding:0 18px;height:54px}")
         sb.append("form img{width:34px;height:34px;object-fit:contain}")
         sb.append("input{flex:1;min-width:0;background:none;border:0;outline:0;color:#f1f6ff;font-size:17px;height:100%}")
         sb.append(".g{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}")
-        sb.append(".g a{display:block;text-align:center;text-decoration:none;color:#f1f6ff;background:#1d3856;border-radius:18px;padding:18px 6px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}")
-        sb.append(".g.f a{background:#1c2a42;font-weight:600;font-size:14px}")
-        sb.append("h3{margin:26px 0 0;font-size:16px}")
+        sb.append(".g a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;text-decoration:none;color:#f1f6ff;border-radius:20px;padding:20px 6px;font-weight:700;overflow:hidden}")
+        sb.append(".g a span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}")
+        sb.append(".g svg{width:30px;height:30px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}")
+        sb.append(".fav{margin-top:22px;background:#1c2a42;border-radius:22px;padding:18px 18px 20px}")
+        sb.append(".fav h3{margin:0 0 12px;font-size:19px;display:flex;align-items:center;gap:10px}")
+        sb.append(".fav h3 svg{width:24px;height:24px;fill:none;stroke:#f5c04a;stroke-width:2;stroke-linejoin:round}")
+        sb.append(".fav p{margin:0;color:#8ea3c4;font-size:16px}")
+        sb.append(".fl{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}")
+        sb.append(".fl a{display:block;text-align:center;text-decoration:none;color:#f1f6ff;background:#26364f;border-radius:16px;padding:14px 8px;font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}")
+        sb.append(".ft{margin-top:auto;padding-top:34px;text-align:center;font-size:15px;color:#8ea3c4}")
+        sb.append(".ft a{color:#8ea3c4}")
         sb.append("</style></head><body>")
-        sb.append("<p class='tl'><b>BM Browser</b> \u00B7 Dein Internet. Deine Welt.</p>")
+        sb.append("<div class='top'><p class='tl'><b>BM Browser</b> \u00B7 Dein Internet. Deine Welt.</p>")
+        sb.append("<a class='acc' href='bmaccount://open'>").append(accountLabel).append("</a></div>")
         sb.append("<form action='bmsearch://go' method='get'>")
         if (logo.isNotEmpty()) sb.append("<img src='").append(logo).append("' alt='BM'>")
         sb.append("<input name='q' type='text' placeholder='Suchen oder Adresse eingeben' autocomplete='off' autocapitalize='off'></form>")
         sb.append("<div class='g'>")
-        for (l in links) sb.append("<a href='").append(esc(l.second)).append("'>").append(esc(l.first)).append("</a>")
+        for (l in links) {
+            val st = tileStyle(l.first)
+            sb.append("<a href='").append(esc(l.second)).append("' style='background:").append(st[0]).append("'>")
+            sb.append("<svg viewBox='0 0 24 24' stroke='").append(st[1]).append("'>").append(st[2]).append("</svg>")
+            sb.append("<span>").append(esc(l.first)).append("</span></a>")
+        }
         sb.append("</div>")
+        sb.append("<div class='fav'><h3><svg viewBox='0 0 24 24'><path d='M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z'/></svg>Deine Favoriten</h3>")
         if (fav.length() > 0) {
-            sb.append("<h3>\u2605 Deine Favoriten</h3><div class='g f'>")
+            sb.append("<div class='fl'>")
             for (i in 0 until fav.length()) {
                 val o = fav.optJSONObject(i) ?: continue
                 val title = o.optString("t").ifBlank { o.optString("u") }
                 sb.append("<a href='").append(esc(o.optString("u"))).append("'>").append(esc(title)).append("</a>")
             }
             sb.append("</div>")
+        } else {
+            sb.append("<p>Eigene Webseiten hinzuf\u00FCgen und jederzeit wieder \u00F6ffnen.</p>")
         }
+        sb.append("</div>")
+        sb.append("<div class='ft'><a href='").append(BASE).append("/impressum.html'>Impressum</a> \u00B7 <a href='").append(BASE).append("/datenschutz.html'>Datenschutz</a></div>")
         sb.append("</body></html>")
         return sb.toString()
     }
